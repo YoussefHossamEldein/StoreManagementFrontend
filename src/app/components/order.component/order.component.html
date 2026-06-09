@@ -1,0 +1,151 @@
+<div class="page-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1>Orders</h1>
+      <p>Manage your store orders</p>
+    </div>
+    <button class="btn-primary" (click)="openCreateForm()">+ New Order</button>
+  </div>
+
+  <!-- Error -->
+  @if (errorMessage()) {
+    <div class="error-banner">{{ errorMessage() }}</div>
+  }
+
+  <!-- Search -->
+  <div class="search-bar">
+    <input
+      type="text"
+      placeholder="Search by status or order ID..."
+      [value]="searchTerm()"
+      (input)="onSearch($event)"
+    />
+  </div>
+
+  <!-- Create Form -->
+  @if (showCreateForm()) {
+    <div class="form-card">
+      <h2>Create New Order</h2>
+
+      <!-- Customer Selector -->
+      <div class="form-group">
+        <label>Customer</label>
+        <select [(ngModel)]="selectedCustomerId">
+          <option [ngValue]="0" disabled>Select a customer</option>
+          @for (customer of customers(); track customer.id) {
+            <option [ngValue]="customer.id">{{ customer.name }}</option>
+          }
+        </select>
+      </div>
+
+      <!-- Product Selector -->
+      <div class="item-selector">
+        <div class="form-group">
+          <label>Product</label>
+          <select [(ngModel)]="selectedProductId">
+            <option [ngValue]="0" disabled>Select a product</option>
+            @for (product of products(); track product.id) {
+              <option [ngValue]="product.id">{{ product.name }} — ${{ product.price }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-group qty-group">
+          <label>Qty</label>
+          <input type="number" [(ngModel)]="selectedQuantity" min="1" />
+        </div>
+        <button class="btn-add-item" (click)="addItem()">+ Add</button>
+      </div>
+
+      <!-- Items List -->
+      @if (orderItems.length > 0) {
+        <div class="items-list">
+          <div class="items-header">
+            <span>Product</span>
+            <span>Qty</span>
+            <span>Unit Price</span>
+            <span>Subtotal</span>
+            <span></span>
+          </div>
+          @for (item of orderItems; track item.productId) {
+            <div class="item-row">
+              <span>{{ getProductName(item.productId) }}</span>
+              <span>{{ item.quantity }}</span>
+              <span>${{ getProductPrice(item.productId) | number: '1.2-2' }}</span>
+              <span>${{ getProductPrice(item.productId) * item.quantity | number: '1.2-2' }}</span>
+              <button class="btn-remove" (click)="removeItem(item.productId)">✕</button>
+            </div>
+          }
+          <div class="items-total">Total: ${{ getOrderTotal() | number: '1.2-2' }}</div>
+        </div>
+      }
+
+      <div class="form-actions">
+        <button class="btn-secondary" (click)="cancelCreate()">Cancel</button>
+        <button class="btn-primary" (click)="submitCreate()">Place Order</button>
+      </div>
+    </div>
+  }
+
+  <!-- Loading -->
+  @if (isLoading()) {
+    <div class="loading">Loading orders...</div>
+  }
+
+  <!-- Table -->
+  @if (!isLoading()) {
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Customer</th>
+            <th>Date</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th>Update Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (filteredOrders().length === 0) {
+            <tr>
+              <td colspan="7" class="empty-row">No orders found.</td>
+            </tr>
+          }
+          @for (order of filteredOrders(); track order.id) {
+            <tr>
+              <td>{{ order.id }}</td>
+              <td>{{ getCustomerName(order.customerId) }}</td>
+              <td>{{ order.orderDate | date: 'MMM d, y' }}</td>
+              <td>${{ order.totalAmount | number: '1.2-2' }}</td>
+              <td>
+                <span [class]="getStatusClass(order.status)">
+                  {{ order.status }}
+                </span>
+              </td>
+              <td>
+                <select class="status-select" (change)="updateStatus(order.id, $event)">
+                  <option value="Pending" [selected]="order.status === 'Pending'">Pending</option>
+                  <option value="Shipped" [selected]="order.status === 'Shipped'">Shipped</option>
+                  <option value="Delivered" [selected]="order.status === 'Delivered'">
+                    Delivered
+                  </option>
+                  <option value="Cancelled" [selected]="order.status === 'Cancelled'">
+                    Cancelled
+                  </option>
+                </select>
+              </td>
+              <td class="actions">
+                <button class="btn-delete" (click)="deleteOrder(order.id)">Delete</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+      <div class="table-footer">
+        Showing {{ filteredOrders().length }} of {{ orders().length }} orders
+      </div>
+    </div>
+  }
+</div>

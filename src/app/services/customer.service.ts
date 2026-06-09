@@ -7,18 +7,18 @@ import { CreateCustomerDto, Customer } from '../models/customer.model';
   providedIn: 'root',
 })
 export class CustomerService {
-  private apiUrl = 'https://localhost:7127/api/customers';
+  private apiUrl = 'https://localhost:7099/api/customers';
   constructor(private http: HttpClient) {}
   getAll(): Observable<Customer[]> {
     return this.http.get<Customer[]>(this.apiUrl);
   }
   getById(id: number): Observable<Customer> {
-    return this.http.get<Customer>('${this.apiUrl}/${id}');
+    return this.http.get<Customer>(`${this.apiUrl}/${id}`);
   }
-  Create(dto: CreateCustomerDto): Observable<Customer> {
+  create(dto: CreateCustomerDto): Observable<Customer> {
     return this.http.post<Customer>(this.apiUrl, dto);
   }
-  Delete(id: number): Observable<void> {
-    return this.http.delete<void>('${this.apiUrl}/${id}');
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }

@@ -1,0 +1,135 @@
+<div class="page-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1>Products</h1>
+      <p>Manage your store products</p>
+    </div>
+    <button class="btn-primary" (click)="openCreateForm()">+ Add Product</button>
+  </div>
+
+  <!-- Error Message -->
+  @if (errorMessage()) {
+    <div class="error-banner">{{ errorMessage() }}</div>
+  }
+
+  <!-- Search Bar -->
+  <div class="search-bar">
+    <input
+      type="text"
+      placeholder="Search by name or category..."
+      [value]="searchTerm()"
+      (input)="onSearch($event)"
+    />
+  </div>
+
+  <!-- Create Form -->
+  @if (showCreateForm()) {
+    <div class="form-card">
+      <h2>Add New Product</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Name</label>
+          <input type="text" [(ngModel)]="createForm.name" placeholder="Product name" />
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <input type="text" [(ngModel)]="createForm.category" placeholder="Category" />
+        </div>
+        <div class="form-group">
+          <label>Price</label>
+          <input type="number" [(ngModel)]="createForm.price" placeholder="0.00" />
+        </div>
+        <div class="form-group">
+          <label>Stock</label>
+          <input type="number" [(ngModel)]="createForm.stock" placeholder="0" />
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-secondary" (click)="cancelCreate()">Cancel</button>
+        <button class="btn-primary" (click)="submitCreate()">Save Product</button>
+      </div>
+    </div>
+  }
+
+  <!-- Edit Form -->
+  @if (editingProduct()) {
+    <div class="form-card edit-card">
+      <h2>Edit — {{ editingProduct()!.name }}</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Name</label>
+          <input type="text" [(ngModel)]="editForm.name" />
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <input type="text" [(ngModel)]="editForm.category" />
+        </div>
+        <div class="form-group">
+          <label>Price</label>
+          <input type="number" [(ngModel)]="editForm.price" />
+        </div>
+        <div class="form-group">
+          <label>Stock</label>
+          <input type="number" [(ngModel)]="editForm.stock" />
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-secondary" (click)="cancelEdit()">Cancel</button>
+        <button class="btn-primary" (click)="submitEdit()">Update Product</button>
+      </div>
+    </div>
+  }
+
+  <!-- Loading -->
+  @if (isLoading()) {
+    <div class="loading">Loading products...</div>
+  }
+
+  <!-- Table -->
+  @if (!isLoading()) {
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Price</th>
+            <th>Stock</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (filteredProducts().length === 0) {
+            <tr>
+              <td colspan="6" class="empty-row">No products found.</td>
+            </tr>
+          }
+          @for (product of filteredProducts(); track product.id) {
+            <tr>
+              <td>{{ product.id }}</td>
+              <td>{{ product.name }}</td>
+              <td>
+                <span class="badge">{{ product.category }}</span>
+              </td>
+              <td>${{ product.price | number: '1.2-2' }}</td>
+              <td>
+                <span [class]="product.stock < 10 ? 'stock-low' : 'stock-ok'">
+                  {{ product.stock }}
+                </span>
+              </td>
+              <td class="actions">
+                <button class="btn-edit" (click)="openEditForm(product)">Edit</button>
+                <button class="btn-delete" (click)="deleteProduct(product.id)">Delete</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+      <div class="table-footer">
+        Showing {{ filteredProducts().length }} of {{ products().length }} products
+      </div>
+    </div>
+  }
+</div>

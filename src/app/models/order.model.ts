@@ -3,21 +3,18 @@ export interface OrderItem {
   quantity: number;
   unitPrice: number;
 }
-
 export interface Order {
-  orderId: number;
-  customerId: number;
-  orderDate: string;
-  totalAmount: number;
+  id: number;
   status: string;
+  customerId: number;
+  totalAmount: number;
+  orderDate: string;
   items: OrderItem[];
 }
-
 export interface CreateOrderItemDto {
-  productId: number;
   quantity: number;
+  productId: number;
 }
-
 export interface CreateOrderDto {
   customerId: number;
   items: CreateOrderItemDto[];

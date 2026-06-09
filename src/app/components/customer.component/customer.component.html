@@ -1,0 +1,86 @@
+<div class="page-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1>Customers</h1>
+      <p>Manage your store customers</p>
+    </div>
+    <button class="btn-primary" (click)="openCreateForm()">+ Add Customer</button>
+  </div>
+
+  <!-- Error Message -->
+  @if (errorMessage()) {
+    <div class="error-banner">{{ errorMessage() }}</div>
+  }
+
+  <!-- Search Bar -->
+  <div class="search-bar">
+    <input
+      type="text"
+      placeholder="Search by name..."
+      [value]="searchTerm()"
+      (input)="onSearch($event)"
+    />
+  </div>
+
+  <!-- Create Form -->
+  @if (showCreateForm()) {
+    <div class="form-card">
+      <h2>Add New Customer</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Name</label>
+          <input type="text" [(ngModel)]="createForm.name" placeholder="Customer name" />
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-secondary" (click)="cancelCreate()">Cancel</button>
+        <button class="btn-primary" (click)="submitCreate()">Save Customer</button>
+      </div>
+    </div>
+  }
+
+  <!-- Loading -->
+  @if (isLoading()) {
+    <div class="loading">Loading customers...</div>
+  }
+
+  <!-- Table -->
+  @if (!isLoading()) {
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (filteredCustomers().length === 0) {
+            <tr>
+              <td colspan="3" class="empty-row">No customers found.</td>
+            </tr>
+          }
+          @for (customer of filteredCustomers(); track customer.id) {
+            <tr>
+              <td>{{ customer.id }}</td>
+              <td>
+                <div class="customer-name">
+                  <div class="avatar">{{ customer.name.charAt(0).toUpperCase() }}</div>
+                  {{ customer.name }}
+                </div>
+              </td>
+              <td class="actions">
+                <button class="btn-delete" (click)="deleteCustomer(customer.id)">Delete</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+      <div class="table-footer">
+        Showing {{ filteredCustomers().length }} of {{ customers().length }} customers
+      </div>
+    </div>
+  }
+</div>

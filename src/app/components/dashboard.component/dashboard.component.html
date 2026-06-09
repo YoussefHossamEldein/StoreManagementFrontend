@@ -1,0 +1,82 @@
+<div class="page-container">
+  <div class="page-header">
+    <div>
+      <h1>Dashboard</h1>
+      <p>Welcome back — here's your store overview</p>
+    </div>
+  </div>
+
+  @if (isLoading()) {
+    <div class="loading">Loading dashboard...</div>
+  }
+
+  @if (!isLoading()) {
+    <!-- KPI Cards -->
+    <div class="cards-grid">
+      <div class="card card-blue">
+        <div class="card-icon">📦</div>
+        <div class="card-info">
+          <span class="card-label">Total Products</span>
+          <span class="card-value">{{ totalProducts() }}</span>
+        </div>
+      </div>
+      <div class="card card-green">
+        <div class="card-icon">👥</div>
+        <div class="card-info">
+          <span class="card-label">Total Customers</span>
+          <span class="card-value">{{ totalCustomers() }}</span>
+        </div>
+      </div>
+      <div class="card card-purple">
+        <div class="card-icon">🛒</div>
+        <div class="card-info">
+          <span class="card-label">Total Orders</span>
+          <span class="card-value">{{ totalOrders() }}</span>
+        </div>
+      </div>
+      <div class="card card-orange">
+        <div class="card-icon">💰</div>
+        <div class="card-info">
+          <span class="card-label">Total Revenue</span>
+          <span class="card-value">${{ totalRevenue() | number: '1.2-2' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom-grid">
+      <!-- Recent Orders -->
+      <div class="section-card">
+        <h2>Recent Orders</h2>
+        @if (recentOrders().length === 0) {
+          <p class="empty-text">No orders yet.</p>
+        }
+        @for (order of recentOrders(); track order.id) {
+          <div class="order-row">
+            <div class="order-info">
+              <span class="order-id">#{{ order.id }}</span>
+              <span class="order-date">{{ order.orderDate | date: 'MMM d, y' }}</span>
+            </div>
+            <span [class]="getStatusClass(order.status)">{{ order.status }}</span>
+            <span class="order-amount">${{ order.totalAmount | number: '1.2-2' }}</span>
+          </div>
+        }
+      </div>
+
+      <!-- Low Stock -->
+      <div class="section-card">
+        <h2>
+          Low Stock Alert <span class="alert-badge">{{ lowStockItems().length }}</span>
+        </h2>
+        @if (lowStockItems().length === 0) {
+          <p class="empty-text">All products are well stocked!</p>
+        }
+        @for (product of lowStockItems(); track product.id) {
+          <div class="stock-row">
+            <span class="product-name">{{ product.name }}</span>
+            <span class="stock-badge">{{ product.stock }} left</span>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>
