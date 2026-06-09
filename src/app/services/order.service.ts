@@ -7,7 +7,7 @@ import { CreateOrderDto, Order } from '../models/order.model';
   providedIn: 'root',
 })
 export class OrderService {
-  private apiUrl = 'https://localhost:7099/api/orders';
+  private apiUrl = 'https://storemanagementsystem-production-548b.up.railway.app/api/orders';
   constructor(private http: HttpClient) {}
   getAll(): Observable<Order[]> {
     return this.http.get<Order[]>(this.apiUrl);
@@ -20,7 +20,7 @@ export class OrderService {
   }
   update(id: number, status: string): Observable<void> {
     const params = new HttpParams().set('status', status);
-    return this.http.put<void>(`${this.apiUrl}/${id}`, null, { params });
+    return this.http.put<void>(`${this.apiUrl}/${id}/status`, null, { params });
   }
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
