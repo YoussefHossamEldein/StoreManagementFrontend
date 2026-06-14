@@ -1,7 +1,9 @@
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ProductService } from '../../services/product.service';
+import { AuthService } from '../../services/auth.service';
+import { CartService } from '../../services/cart.service';
 import { Product, CreateProductDto, UpdateProductDto } from '../../models/product.model';
 
 @Component({
@@ -12,15 +14,18 @@ import { Product, CreateProductDto, UpdateProductDto } from '../../models/produc
   styleUrl: './product.component.css',
 })
 export class ProductComponent implements OnInit {
-  // ── Signals ──────────────────────────────────────────────────
+  private productService = inject(ProductService);
+  authService = inject(AuthService);
+  cartService = inject(CartService);
+
   products = signal<Product[]>([]);
-  searchTerm = signal<string>('');
   isLoading = signal<boolean>(false);
   errorMessage = signal<string>('');
+  searchTerm = signal<string>('');
   showCreateForm = signal<boolean>(false);
   editingProduct = signal<Product | null>(null);
+  addedToCart = signal<number | null>(null);
 
-  // ── Computed — filters automatically when products or searchTerm changes
   filteredProducts = computed(() => {
     const term = this.searchTerm().toLowerCase();
     if (!term) return this.products();
@@ -29,11 +34,8 @@ export class ProductComponent implements OnInit {
     );
   });
 
-  // ── Forms ─────────────────────────────────────────────────────
   createForm: CreateProductDto = { name: '', category: '', price: 0, stock: 0 };
   editForm: UpdateProductDto = { name: '', category: '', price: 0, stock: 0 };
-
-  constructor(private productService: ProductService) {}
 
   ngOnInit(): void {
     this.loadProducts();
@@ -48,19 +50,18 @@ export class ProductComponent implements OnInit {
         this.isLoading.set(false);
       },
       error: () => {
-        this.errorMessage.set('Failed to load products. Make sure the backend is running.');
+        this.errorMessage.set('Failed to load products.');
         this.isLoading.set(false);
       },
     });
   }
 
-  // ── Search ────────────────────────────────────────────────────
   onSearch(event: Event): void {
     const value = (event.target as HTMLInputElement).value;
     this.searchTerm.set(value);
   }
 
-  // ── Create ────────────────────────────────────────────────────
+  // ── Admin actions ─────────────────────────────────────────────
   openCreateForm(): void {
     this.showCreateForm.set(true);
     this.editingProduct.set(null);
@@ -85,7 +86,6 @@ export class ProductComponent implements OnInit {
     });
   }
 
-  // ── Edit ──────────────────────────────────────────────────────
   openEditForm(product: Product): void {
     this.editingProduct.set(product);
     this.showCreateForm.set(false);
@@ -104,10 +104,6 @@ export class ProductComponent implements OnInit {
   submitEdit(): void {
     const product = this.editingProduct();
     if (!product) return;
-    if (!this.editForm.name || !this.editForm.category || this.editForm.price <= 0) {
-      alert('Please fill all fields correctly.');
-      return;
-    }
     this.productService.update(product.id, this.editForm).subscribe({
       next: () => {
         this.editingProduct.set(null);
@@ -117,12 +113,24 @@ export class ProductComponent implements OnInit {
     });
   }
 
-  // ── Delete ────────────────────────────────────────────────────
   deleteProduct(id: number): void {
-    if (!confirm('Are you sure you want to delete this product?')) return;
+    if (!confirm('Are you sure?')) return;
     this.productService.delete(id).subscribe({
       next: () => this.loadProducts(),
       error: () => alert('Failed to delete product.'),
     });
+  }
+
+  // ── Customer actions ──────────────────────────────────────────
+  addToCart(product: Product): void {
+    this.cartService.addItem({
+      productId: product.id,
+      productName: product.name,
+      price: product.price,
+      quantity: 1,
+    });
+    // Show "Added!" feedback for 1.5 seconds
+    this.addedToCart.set(product.id);
+    setTimeout(() => this.addedToCart.set(null), 1500);
   }
 }

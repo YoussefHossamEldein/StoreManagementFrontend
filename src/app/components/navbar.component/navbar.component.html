@@ -5,25 +5,53 @@
   </div>
 
   <ul class="nav-links">
-    <li>
-      <a routerLink="/dashboard" routerLinkActive="active">
-        <span class="nav-icon">📊</span> Dashboard
-      </a>
-    </li>
+    <!-- Admin only links -->
+    @if (authService.isAdmin()) {
+      <li>
+        <a routerLink="/dashboard" routerLinkActive="active">
+          <span class="nav-icon">📊</span> Dashboard
+        </a>
+      </li>
+      <li>
+        <a routerLink="/customers" routerLinkActive="active">
+          <span class="nav-icon">👥</span> Customers
+        </a>
+      </li>
+      <li>
+        <a routerLink="/orders" routerLinkActive="active">
+          <span class="nav-icon">🧾</span> Orders
+        </a>
+      </li>
+    }
+
+    <!-- Both Admin and Customer -->
     <li>
       <a routerLink="/products" routerLinkActive="active">
         <span class="nav-icon">📦</span> Products
       </a>
     </li>
-    <li>
-      <a routerLink="/customers" routerLinkActive="active">
-        <span class="nav-icon">👥</span> Customers
-      </a>
-    </li>
-    <li>
-      <a routerLink="/orders" routerLinkActive="active">
-        <span class="nav-icon">🧾</span> Orders
-      </a>
-    </li>
+
+    <!-- Customer only -->
+    @if (!authService.isAdmin()) {
+      <li>
+        <a routerLink="/cart" routerLinkActive="active">
+          <span class="nav-icon">🛒</span> Cart
+          @if (cartService.totalItems() > 0) {
+            <span class="cart-badge">{{ cartService.totalItems() }}</span>
+          }
+        </a>
+      </li>
+    }
   </ul>
+
+  <!-- User info + logout -->
+  <div class="navbar-user">
+    <span class="user-info">
+      <span class="user-role" [class]="authService.isAdmin() ? 'role-admin' : 'role-customer'">
+        {{ authService.isAdmin() ? 'Admin' : 'Customer' }}
+      </span>
+      {{ authService.currentUser()?.fullName }}
+    </span>
+    <button class="btn-logout" (click)="authService.logout()">Logout</button>
+  </div>
 </nav>

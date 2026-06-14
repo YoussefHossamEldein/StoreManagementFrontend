@@ -16,7 +16,6 @@
   color: #ffffff;
   font-size: 18px;
   font-weight: 700;
-  letter-spacing: 0.3px;
 }
 
 .brand-icon {
@@ -59,4 +58,64 @@
 
 .nav-icon {
   font-size: 15px;
+}
+
+/* ── User info ────────────────────────────────────────────────── */
+.navbar-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.user-role {
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.role-admin {
+  background: #f59e0b;
+  color: white;
+}
+
+.role-customer {
+  background: #16a34a;
+  color: white;
+}
+
+.btn-logout {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 7px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-logout:hover {
+  background: rgba(239, 68, 68, 0.8);
+  border-color: transparent;
+}
+
+.cart-badge {
+  background: #ef4444;
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 20px;
+  margin-left: 2px;
 }
