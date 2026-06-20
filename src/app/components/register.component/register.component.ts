@@ -17,7 +17,7 @@ export class RegisterComponent {
     fullName: '',
     email: '',
     password: '',
-    role: 'Customer',
+    role: 'User',
   };
 
   isLoading = signal<boolean>(false);
@@ -47,7 +47,7 @@ export class RegisterComponent {
         if (response.role === 'Admin') {
           this.router.navigate(['/dashboard']);
         } else {
-          this.router.navigate(['/products']);
+          this.router.navigate(['/orders']);
         }
       },
       error: (err) => {

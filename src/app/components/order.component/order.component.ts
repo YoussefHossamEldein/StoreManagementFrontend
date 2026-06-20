@@ -1,4 +1,4 @@
-import { Component, signal, computed, OnInit } from '@angular/core';
+import { Component, signal, computed, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { OrderService } from '../../services/order.service';
@@ -7,7 +7,7 @@ import { ProductService } from '../../services/product.service';
 import { Order, CreateOrderDto, CreateOrderItemDto } from '../../models/order.model';
 import { Customer } from '../../models/customer.model';
 import { Product } from '../../models/product.model';
-
+import { AuthService } from '../../services/auth.service';
 @Component({
   selector: 'app-order',
   standalone: true,
@@ -24,7 +24,7 @@ export class OrderComponent implements OnInit {
   errorMessage = signal<string>('');
   searchTerm = signal<string>('');
   showCreateForm = signal<boolean>(false);
-
+  authService = inject(AuthService);
   // ── Computed ──────────────────────────────────────────────────
   filteredOrders = computed(() => {
     const term = this.searchTerm().toLowerCase();

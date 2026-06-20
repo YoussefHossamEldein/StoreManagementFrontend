@@ -1,18 +1,19 @@
+<!-- Overlay — clicking outside closes the panel -->
+@if (panelOpen()) {
+  <div class="overlay" (click)="closePanel()"></div>
+}
+
 <div class="page-container">
   <!-- Header -->
   <div class="page-header">
     <div>
       <h1>Products</h1>
       <p>
-        {{
-          authService.isAdmin()
-            ? 'Manage your store products'
-            : 'Browse and add products to your cart'
-        }}
+        {{ authService.isAdmin() ? 'Manage your store products' : 'Browse available products' }}
       </p>
     </div>
     @if (authService.isAdmin()) {
-      <button class="btn-primary" (click)="openCreateForm()">+ Add Product</button>
+      <button class="btn-primary" (click)="openCreatePanel()">+ Add Product</button>
     }
   </div>
 
@@ -31,64 +32,6 @@
     />
   </div>
 
-  <!-- Create Form (Admin only) -->
-  @if (showCreateForm() && authService.isAdmin()) {
-    <div class="form-card">
-      <h2>Add New Product</h2>
-      <div class="form-grid">
-        <div class="form-group">
-          <label>Name</label>
-          <input type="text" [(ngModel)]="createForm.name" placeholder="Product name" />
-        </div>
-        <div class="form-group">
-          <label>Category</label>
-          <input type="text" [(ngModel)]="createForm.category" placeholder="Category" />
-        </div>
-        <div class="form-group">
-          <label>Price</label>
-          <input type="number" [(ngModel)]="createForm.price" placeholder="0.00" />
-        </div>
-        <div class="form-group">
-          <label>Stock</label>
-          <input type="number" [(ngModel)]="createForm.stock" placeholder="0" />
-        </div>
-      </div>
-      <div class="form-actions">
-        <button class="btn-secondary" (click)="cancelCreate()">Cancel</button>
-        <button class="btn-primary" (click)="submitCreate()">Save Product</button>
-      </div>
-    </div>
-  }
-
-  <!-- Edit Form (Admin only) -->
-  @if (editingProduct() && authService.isAdmin()) {
-    <div class="form-card edit-card">
-      <h2>Edit — {{ editingProduct()!.name }}</h2>
-      <div class="form-grid">
-        <div class="form-group">
-          <label>Name</label>
-          <input type="text" [(ngModel)]="editForm.name" />
-        </div>
-        <div class="form-group">
-          <label>Category</label>
-          <input type="text" [(ngModel)]="editForm.category" />
-        </div>
-        <div class="form-group">
-          <label>Price</label>
-          <input type="number" [(ngModel)]="editForm.price" />
-        </div>
-        <div class="form-group">
-          <label>Stock</label>
-          <input type="number" [(ngModel)]="editForm.stock" />
-        </div>
-      </div>
-      <div class="form-actions">
-        <button class="btn-secondary" (click)="cancelEdit()">Cancel</button>
-        <button class="btn-primary" (click)="submitEdit()">Update Product</button>
-      </div>
-    </div>
-  }
-
   <!-- Loading -->
   @if (isLoading()) {
     <div class="loading">Loading products...</div>
@@ -106,8 +49,8 @@
             <th>Price</th>
             @if (authService.isAdmin()) {
               <th>Stock</th>
+              <th>Actions</th>
             }
-            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -130,22 +73,11 @@
                     {{ product.stock }}
                   </span>
                 </td>
-              }
-              <td class="actions">
-                @if (authService.isAdmin()) {
-                  <button class="btn-edit" (click)="openEditForm(product)">Edit</button>
+                <td class="actions">
+                  <button class="btn-edit" (click)="openEditPanel(product)">Edit</button>
                   <button class="btn-delete" (click)="deleteProduct(product.id)">Delete</button>
-                }
-                @if (!authService.isAdmin()) {
-                  <button
-                    class="btn-cart"
-                    (click)="addToCart(product)"
-                    [class.btn-added]="addedToCart() === product.id"
-                  >
-                    {{ addedToCart() === product.id ? '✓ Added!' : '🛒 Add to Cart' }}
-                  </button>
-                }
-              </td>
+                </td>
+              }
             </tr>
           }
         </tbody>
@@ -155,4 +87,62 @@
       </div>
     </div>
   }
+</div>
+
+<!-- Side Panel -->
+<div class="side-panel" [class.open]="panelOpen()">
+  <div class="panel-header">
+    <h2>{{ panelMode() === 'create' ? 'Add New Product' : 'Edit Product' }}</h2>
+    <button class="btn-close" (click)="closePanel()">✕</button>
+  </div>
+
+  <div class="panel-body">
+    @if (panelMode() === 'create') {
+      <div class="form-group">
+        <label>Name</label>
+        <input type="text" [(ngModel)]="createForm.name" placeholder="Product name" />
+      </div>
+      <div class="form-group">
+        <label>Category</label>
+        <input type="text" [(ngModel)]="createForm.category" placeholder="Category" />
+      </div>
+      <div class="form-group">
+        <label>Price</label>
+        <input type="number" [(ngModel)]="createForm.price" placeholder="0.00" />
+      </div>
+      <div class="form-group">
+        <label>Stock</label>
+        <input type="number" [(ngModel)]="createForm.stock" placeholder="0" />
+      </div>
+    }
+
+    @if (panelMode() === 'edit') {
+      <div class="form-group">
+        <label>Name</label>
+        <input type="text" [(ngModel)]="editForm.name" />
+      </div>
+      <div class="form-group">
+        <label>Category</label>
+        <input type="text" [(ngModel)]="editForm.category" />
+      </div>
+      <div class="form-group">
+        <label>Price</label>
+        <input type="number" [(ngModel)]="editForm.price" />
+      </div>
+      <div class="form-group">
+        <label>Stock</label>
+        <input type="number" [(ngModel)]="editForm.stock" />
+      </div>
+    }
+  </div>
+
+  <div class="panel-footer">
+    <button class="btn-secondary" (click)="closePanel()">Cancel</button>
+    @if (panelMode() === 'create') {
+      <button class="btn-primary" (click)="submitCreate()">Save Product</button>
+    }
+    @if (panelMode() === 'edit') {
+      <button class="btn-primary" (click)="submitEdit()">Update Product</button>
+    }
+  </div>
 </div>

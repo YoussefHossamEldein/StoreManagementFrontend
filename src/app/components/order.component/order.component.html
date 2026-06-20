@@ -1,19 +1,16 @@
 <div class="page-container">
-  <!-- Header -->
   <div class="page-header">
     <div>
       <h1>Orders</h1>
-      <p>Manage your store orders</p>
+      <p>{{ authService.isAdmin() ? 'Manage all store orders' : 'Create and view orders' }}</p>
     </div>
     <button class="btn-primary" (click)="openCreateForm()">+ New Order</button>
   </div>
 
-  <!-- Error -->
   @if (errorMessage()) {
     <div class="error-banner">{{ errorMessage() }}</div>
   }
 
-  <!-- Search -->
   <div class="search-bar">
     <input
       type="text"
@@ -23,12 +20,10 @@
     />
   </div>
 
-  <!-- Create Form -->
   @if (showCreateForm()) {
     <div class="form-card">
       <h2>Create New Order</h2>
 
-      <!-- Customer Selector -->
       <div class="form-group">
         <label>Customer</label>
         <select [(ngModel)]="selectedCustomerId">
@@ -39,7 +34,6 @@
         </select>
       </div>
 
-      <!-- Product Selector -->
       <div class="item-selector">
         <div class="form-group">
           <label>Product</label>
@@ -57,7 +51,6 @@
         <button class="btn-add-item" (click)="addItem()">+ Add</button>
       </div>
 
-      <!-- Items List -->
       @if (orderItems.length > 0) {
         <div class="items-list">
           <div class="items-header">
@@ -87,12 +80,10 @@
     </div>
   }
 
-  <!-- Loading -->
   @if (isLoading()) {
     <div class="loading">Loading orders...</div>
   }
 
-  <!-- Table -->
   @if (!isLoading()) {
     <div class="table-container">
       <table>
@@ -103,8 +94,10 @@
             <th>Date</th>
             <th>Total</th>
             <th>Status</th>
-            <th>Update Status</th>
-            <th>Actions</th>
+            @if (authService.isAdmin()) {
+              <th>Update Status</th>
+              <th>Actions</th>
+            }
           </tr>
         </thead>
         <tbody>
@@ -120,25 +113,25 @@
               <td>{{ order.orderDate | date: 'MMM d, y' }}</td>
               <td>${{ order.totalAmount | number: '1.2-2' }}</td>
               <td>
-                <span [class]="getStatusClass(order.status)">
-                  {{ order.status }}
-                </span>
+                <span [class]="getStatusClass(order.status)">{{ order.status }}</span>
               </td>
-              <td>
-                <select class="status-select" (change)="updateStatus(order.id, $event)">
-                  <option value="Pending" [selected]="order.status === 'Pending'">Pending</option>
-                  <option value="Shipped" [selected]="order.status === 'Shipped'">Shipped</option>
-                  <option value="Delivered" [selected]="order.status === 'Delivered'">
-                    Delivered
-                  </option>
-                  <option value="Cancelled" [selected]="order.status === 'Cancelled'">
-                    Cancelled
-                  </option>
-                </select>
-              </td>
-              <td class="actions">
-                <button class="btn-delete" (click)="deleteOrder(order.id)">Delete</button>
-              </td>
+              @if (authService.isAdmin()) {
+                <td>
+                  <select class="status-select" (change)="updateStatus(order.id, $event)">
+                    <option value="Pending" [selected]="order.status === 'Pending'">Pending</option>
+                    <option value="Shipped" [selected]="order.status === 'Shipped'">Shipped</option>
+                    <option value="Delivered" [selected]="order.status === 'Delivered'">
+                      Delivered
+                    </option>
+                    <option value="Cancelled" [selected]="order.status === 'Cancelled'">
+                      Cancelled
+                    </option>
+                  </select>
+                </td>
+                <td class="actions">
+                  <button class="btn-delete" (click)="deleteOrder(order.id)">Delete</button>
+                </td>
+              }
             </tr>
           }
         </tbody>

@@ -27,7 +27,6 @@ export class LoginComponent {
       this.errorMessage.set('Please fill all fields.');
       return;
     }
-
     this.isLoading.set(true);
     this.errorMessage.set('');
 
@@ -37,7 +36,7 @@ export class LoginComponent {
         if (response.role === 'Admin') {
           this.router.navigate(['/dashboard']);
         } else {
-          this.router.navigate(['/products']);
+          this.router.navigate(['/orders']);
         }
       },
       error: () => {

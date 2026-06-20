@@ -1,8 +1,9 @@
-import { Component, signal, computed, OnInit } from '@angular/core';
+import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { CreateCustomerDto, Customer } from '../../models/customer.model';
 import { CustomerService } from '../../services/customer.service';
+import { AuthService } from '../../services/auth.service';
+import { Customer, CreateCustomerDto } from '../../models/customer.model';
 
 @Component({
   selector: 'app-customer',
@@ -12,11 +13,16 @@ import { CustomerService } from '../../services/customer.service';
   styleUrl: './customer.component.css',
 })
 export class CustomerComponent implements OnInit {
+  private customerService = inject(CustomerService);
+  authService = inject(AuthService);
+
   customers = signal<Customer[]>([]);
   isLoading = signal<boolean>(false);
   errorMessage = signal<string>('');
   searchTerm = signal<string>('');
-  showCreateForm = signal<boolean>(false);
+
+  // Panel state
+  panelOpen = signal<boolean>(false);
 
   filteredCustomers = computed(() => {
     const term = this.searchTerm().toLowerCase();
@@ -25,8 +31,6 @@ export class CustomerComponent implements OnInit {
   });
 
   createForm: CreateCustomerDto = { name: '' };
-
-  constructor(private customerService: CustomerService) {}
 
   ngOnInit(): void {
     this.loadCustomers();
@@ -41,24 +45,23 @@ export class CustomerComponent implements OnInit {
         this.isLoading.set(false);
       },
       error: () => {
-        this.errorMessage.set('Failed to load customers. Make sure the backend is running.');
+        this.errorMessage.set('Failed to load customers.');
         this.isLoading.set(false);
       },
     });
   }
 
   onSearch(event: Event): void {
-    const value = (event.target as HTMLInputElement).value;
-    this.searchTerm.set(value);
+    this.searchTerm.set((event.target as HTMLInputElement).value);
   }
 
-  openCreateForm(): void {
-    this.showCreateForm.set(true);
+  openPanel(): void {
     this.createForm = { name: '' };
+    this.panelOpen.set(true);
   }
 
-  cancelCreate(): void {
-    this.showCreateForm.set(false);
+  closePanel(): void {
+    this.panelOpen.set(false);
   }
 
   submitCreate(): void {
@@ -68,7 +71,7 @@ export class CustomerComponent implements OnInit {
     }
     this.customerService.create(this.createForm).subscribe({
       next: () => {
-        this.showCreateForm.set(false);
+        this.closePanel();
         this.loadCustomers();
       },
       error: () => alert('Failed to create customer.'),

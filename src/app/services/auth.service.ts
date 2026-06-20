@@ -8,7 +8,6 @@ import { Router } from '@angular/router';
 export class AuthService {
   private apiUrl = 'https://localhost:7099/api/auth';
 
-  // Signals for current user state
   currentUser = signal<AuthResponse | null>(this.getUserFromStorage());
   isLoggedIn = signal<boolean>(!!this.getUserFromStorage());
   isAdmin = signal<boolean>(this.getUserFromStorage()?.role === 'Admin');

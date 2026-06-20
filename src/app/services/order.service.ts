@@ -7,7 +7,7 @@ import { CreateOrderDto, Order } from '../models/order.model';
   providedIn: 'root',
 })
 export class OrderService {
-  private apiUrl = 'https://storemanagementsystem-production-548b.up.railway.app/api/orders';
+  private apiUrl = 'https://localhost:7099/api/orders';
   constructor(private http: HttpClient) {}
   getAll(): Observable<Order[]> {
     return this.http.get<Order[]>(this.apiUrl);

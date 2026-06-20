@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ProductService } from '../../services/product.service';
 import { AuthService } from '../../services/auth.service';
-import { CartService } from '../../services/cart.service';
 import { Product, CreateProductDto, UpdateProductDto } from '../../models/product.model';
 
 @Component({
@@ -16,15 +15,16 @@ import { Product, CreateProductDto, UpdateProductDto } from '../../models/produc
 export class ProductComponent implements OnInit {
   private productService = inject(ProductService);
   authService = inject(AuthService);
-  cartService = inject(CartService);
 
   products = signal<Product[]>([]);
   isLoading = signal<boolean>(false);
   errorMessage = signal<string>('');
   searchTerm = signal<string>('');
-  showCreateForm = signal<boolean>(false);
+
+  // Panel state
+  panelOpen = signal<boolean>(false);
+  panelMode = signal<'create' | 'edit'>('create');
   editingProduct = signal<Product | null>(null);
-  addedToCart = signal<number | null>(null);
 
   filteredProducts = computed(() => {
     const term = this.searchTerm().toLowerCase();
@@ -57,21 +57,34 @@ export class ProductComponent implements OnInit {
   }
 
   onSearch(event: Event): void {
-    const value = (event.target as HTMLInputElement).value;
-    this.searchTerm.set(value);
+    this.searchTerm.set((event.target as HTMLInputElement).value);
   }
 
-  // ── Admin actions ─────────────────────────────────────────────
-  openCreateForm(): void {
-    this.showCreateForm.set(true);
-    this.editingProduct.set(null);
+  // ── Panel Controls ────────────────────────────────────────────
+  openCreatePanel(): void {
     this.createForm = { name: '', category: '', price: 0, stock: 0 };
+    this.panelMode.set('create');
+    this.panelOpen.set(true);
   }
 
-  cancelCreate(): void {
-    this.showCreateForm.set(false);
+  openEditPanel(product: Product): void {
+    this.editingProduct.set(product);
+    this.editForm = {
+      name: product.name,
+      category: product.category,
+      price: product.price,
+      stock: product.stock,
+    };
+    this.panelMode.set('edit');
+    this.panelOpen.set(true);
   }
 
+  closePanel(): void {
+    this.panelOpen.set(false);
+    this.editingProduct.set(null);
+  }
+
+  // ── Submit ────────────────────────────────────────────────────
   submitCreate(): void {
     if (!this.createForm.name || !this.createForm.category || this.createForm.price <= 0) {
       alert('Please fill all fields correctly.');
@@ -79,34 +92,23 @@ export class ProductComponent implements OnInit {
     }
     this.productService.create(this.createForm).subscribe({
       next: () => {
-        this.showCreateForm.set(false);
+        this.closePanel();
         this.loadProducts();
       },
       error: () => alert('Failed to create product.'),
     });
   }
 
-  openEditForm(product: Product): void {
-    this.editingProduct.set(product);
-    this.showCreateForm.set(false);
-    this.editForm = {
-      name: product.name,
-      category: product.category,
-      price: product.price,
-      stock: product.stock,
-    };
-  }
-
-  cancelEdit(): void {
-    this.editingProduct.set(null);
-  }
-
   submitEdit(): void {
     const product = this.editingProduct();
     if (!product) return;
+    if (!this.editForm.name || !this.editForm.category || this.editForm.price <= 0) {
+      alert('Please fill all fields correctly.');
+      return;
+    }
     this.productService.update(product.id, this.editForm).subscribe({
       next: () => {
-        this.editingProduct.set(null);
+        this.closePanel();
         this.loadProducts();
       },
       error: () => alert('Failed to update product.'),
@@ -114,23 +116,10 @@ export class ProductComponent implements OnInit {
   }
 
   deleteProduct(id: number): void {
-    if (!confirm('Are you sure?')) return;
+    if (!confirm('Are you sure you want to delete this product?')) return;
     this.productService.delete(id).subscribe({
       next: () => this.loadProducts(),
       error: () => alert('Failed to delete product.'),
     });
-  }
-
-  // ── Customer actions ──────────────────────────────────────────
-  addToCart(product: Product): void {
-    this.cartService.addItem({
-      productId: product.id,
-      productName: product.name,
-      price: product.price,
-      quantity: 1,
-    });
-    // Show "Added!" feedback for 1.5 seconds
-    this.addedToCart.set(product.id);
-    setTimeout(() => this.addedToCart.set(null), 1500);
   }
 }

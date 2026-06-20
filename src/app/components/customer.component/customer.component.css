@@ -1,4 +1,3 @@
-/* ── Page Layout ───────────────────────────────────────────────── */
 .page-container {
   padding: 32px;
   max-width: 1200px;
@@ -6,7 +5,6 @@
   font-family: 'Segoe UI', sans-serif;
 }
 
-/* ── Header ────────────────────────────────────────────────────── */
 .page-header {
   display: flex;
   justify-content: space-between;
@@ -27,7 +25,6 @@
   margin: 4px 0 0 0;
 }
 
-/* ── Buttons ───────────────────────────────────────────────────── */
 .btn-primary {
   background: linear-gradient(135deg, #2563eb, #1d4ed8);
   color: white;
@@ -66,13 +63,12 @@
   background: linear-gradient(135deg, #ef4444, #dc2626);
   color: white;
   border: none;
-  padding: 6px 16px;
+  padding: 6px 14px;
   border-radius: 6px;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 1px 4px rgba(239, 68, 68, 0.3);
 }
 
 .btn-delete:hover {
@@ -80,7 +76,23 @@
   box-shadow: 0 3px 8px rgba(239, 68, 68, 0.4);
 }
 
-/* ── Error Banner ──────────────────────────────────────────────── */
+.btn-close {
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.15s;
+  line-height: 1;
+}
+
+.btn-close:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+}
+
 .error-banner {
   background: #fef2f2;
   color: #dc2626;
@@ -90,10 +102,8 @@
   border-radius: 8px;
   margin-bottom: 20px;
   font-size: 14px;
-  font-weight: 500;
 }
 
-/* ── Search Bar ────────────────────────────────────────────────── */
 .search-bar {
   margin-bottom: 20px;
 }
@@ -117,76 +127,13 @@
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
-/* ── Form Card ─────────────────────────────────────────────────── */
-.form-card {
-  background: white;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 16px;
-  padding: 28px;
-  margin-bottom: 24px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
-  animation: slideDown 0.25s ease;
-}
-
-.form-card h2 {
-  font-size: 18px;
-  font-weight: 700;
-  color: #1e3a5f;
-  margin: 0 0 20px 0;
-}
-
-.form-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 16px;
-  margin-bottom: 20px;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.form-group label {
-  font-size: 13px;
-  font-weight: 600;
-  color: #475569;
-}
-
-.form-group input {
-  padding: 10px 14px;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 14px;
-  color: #1e293b;
-  outline: none;
-  transition: all 0.2s ease;
-  background: #f8fafc;
-}
-
-.form-group input:focus {
-  border-color: #2563eb;
-  background: white;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-}
-
-.form-actions {
-  display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-}
-
-/* ── Loading ───────────────────────────────────────────────────── */
 .loading {
   text-align: center;
   padding: 60px;
   color: #64748b;
   font-size: 15px;
-  font-weight: 500;
 }
 
-/* ── Table ─────────────────────────────────────────────────────── */
 .table-container {
   background: white;
   border-radius: 16px;
@@ -222,7 +169,6 @@ tbody tr {
 tbody tr:last-child {
   border-bottom: none;
 }
-
 tbody tr:hover {
   background: #f8fafc;
 }
@@ -233,7 +179,6 @@ tbody td {
   color: #334155;
 }
 
-/* ── Customer Name with Avatar ─────────────────────────────────── */
 .customer-name {
   display: flex;
   align-items: center;
@@ -254,13 +199,11 @@ tbody td {
   flex-shrink: 0;
 }
 
-/* ── Actions ───────────────────────────────────────────────────── */
 .actions {
   display: flex;
   align-items: center;
 }
 
-/* ── Empty Row ─────────────────────────────────────────────────── */
 .empty-row {
   text-align: center;
   padding: 48px !important;
@@ -268,7 +211,6 @@ tbody td {
   font-size: 15px;
 }
 
-/* ── Table Footer ──────────────────────────────────────────────── */
 .table-footer {
   padding: 12px 18px;
   font-size: 13px;
@@ -278,22 +220,111 @@ tbody td {
   text-align: right;
 }
 
-/* ── Animation ─────────────────────────────────────────────────── */
-@keyframes slideDown {
+/* ── Overlay ──────────────────────────────────────────────────── */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 99;
+  animation: fadeIn 0.2s ease;
+}
+
+/* ── Side Panel ───────────────────────────────────────────────── */
+.side-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  width: 420px;
+  background: white;
+  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.12);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.side-panel.open {
+  transform: translateX(0);
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 28px;
+  border-bottom: 1px solid #e2e8f0;
+  background: linear-gradient(135deg, #1e3a5f, #2563eb);
+}
+
+.panel-header h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: white;
+  margin: 0;
+}
+
+.panel-body {
+  flex: 1;
+  padding: 28px;
+  overflow-y: auto;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.form-group input {
+  padding: 11px 14px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #1e293b;
+  outline: none;
+  transition: all 0.2s ease;
+  background: #f8fafc;
+}
+
+.form-group input:focus {
+  border-color: #2563eb;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.panel-footer {
+  padding: 20px 28px;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  background: #f8fafc;
+}
+
+@keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(-10px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 
-/* ── Responsive ────────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .page-container {
     padding: 16px;
+  }
+  .side-panel {
+    width: 100%;
   }
   .page-header {
     flex-direction: column;

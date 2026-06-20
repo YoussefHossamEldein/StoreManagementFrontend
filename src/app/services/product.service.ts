@@ -7,7 +7,7 @@ import { CreateProductDto, Product, UpdateProductDto } from '../models/product.m
   providedIn: 'root',
 })
 export class ProductService {
-  private apiUrl = 'https://storemanagementsystem-production-548b.up.railway.app/api/products';
+  private apiUrl = 'https://localhost:7099/api/products';
   constructor(private http: HttpClient) {}
   getAll(): Observable<Product[]> {
     return this.http.get<Product[]>(this.apiUrl);
