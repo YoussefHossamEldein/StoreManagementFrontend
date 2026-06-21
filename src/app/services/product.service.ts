@@ -5,7 +5,7 @@ import { CreateProductDto, Product, UpdateProductDto } from '../models/product.m
 
 @Injectable({ providedIn: 'root' })
 export class ProductService {
-  private apiUrl = 'radiant-connection-production-61be.up.railway.app';
+  private apiUrl = 'https://radiant-connection-production-61be.up.railway.app';
 
   constructor(private http: HttpClient) {}
 
