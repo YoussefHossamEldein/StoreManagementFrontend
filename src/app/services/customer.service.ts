@@ -7,7 +7,7 @@ import { CreateCustomerDto, Customer } from '../models/customer.model';
   providedIn: 'root',
 })
 export class CustomerService {
-  private apiUrl = 'https://localhost:7208/api/customers';
+  private apiUrl = 'radiant-connection-production-61be.up.railway.app';
   constructor(private http: HttpClient) {}
   getAll(): Observable<Customer[]> {
     return this.http.get<Customer[]>(this.apiUrl);
