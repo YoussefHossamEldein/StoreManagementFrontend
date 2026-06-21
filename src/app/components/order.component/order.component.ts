@@ -8,6 +8,7 @@ import { Order, CreateOrderDto, CreateOrderItemDto } from '../../models/order.mo
 import { Customer } from '../../models/customer.model';
 import { Product } from '../../models/product.model';
 import { AuthService } from '../../services/auth.service';
+
 @Component({
   selector: 'app-order',
   standalone: true,
@@ -24,7 +25,10 @@ export class OrderComponent implements OnInit {
   errorMessage = signal<string>('');
   searchTerm = signal<string>('');
   showCreateForm = signal<boolean>(false);
+  panelOpen = signal<boolean>(false);
+  panelStep = signal<1 | 2>(1);
   authService = inject(AuthService);
+
   // ── Computed ──────────────────────────────────────────────────
   filteredOrders = computed(() => {
     const term = this.searchTerm().toLowerCase();
@@ -34,11 +38,15 @@ export class OrderComponent implements OnInit {
     );
   });
 
-  // ── Create Form ───────────────────────────────────────────────
+  // ── Order Form ────────────────────────────────────────────────
   selectedCustomerId: number = 0;
   orderItems: CreateOrderItemDto[] = [];
   selectedProductId: number = 0;
   selectedQuantity: number = 1;
+
+  // ── Payment ───────────────────────────────────────────────────
+  selectedPaymentMethod: string = '';
+  private orderPaymentMap: Record<number, string> = {};
 
   constructor(
     private orderService: OrderService,
@@ -86,19 +94,74 @@ export class OrderComponent implements OnInit {
     this.searchTerm.set(value);
   }
 
-  // ── Create Form ───────────────────────────────────────────────
+  // ── Panel Controls ────────────────────────────────────────────
   openCreateForm(): void {
-    this.showCreateForm.set(true);
     this.selectedCustomerId = 0;
     this.orderItems = [];
     this.selectedProductId = 0;
     this.selectedQuantity = 1;
+    this.selectedPaymentMethod = '';
+    this.panelStep.set(1);
+    this.panelOpen.set(true);
+    this.showCreateForm.set(true);
   }
 
-  cancelCreate(): void {
+  closePanel(): void {
+    this.panelOpen.set(false);
     this.showCreateForm.set(false);
+    this.panelStep.set(1);
   }
 
+  goToStep(step: 1 | 2): void {
+    this.panelStep.set(step);
+  }
+
+  goToPayment(): void {
+    if (this.selectedCustomerId === 0) {
+      alert('Please select a customer.');
+      return;
+    }
+    if (this.orderItems.length === 0) {
+      alert('Please add at least one product.');
+      return;
+    }
+    this.panelStep.set(2);
+  }
+
+  // ── Payment ───────────────────────────────────────────────────
+  selectPaymentMethod(method: string): void {
+    this.selectedPaymentMethod = method;
+  }
+
+  getPaymentLabel(orderId: number): string {
+    const method = this.orderPaymentMap[orderId];
+    switch (method) {
+      case 'credit':
+        return 'Credit Card';
+      case 'debit':
+        return 'Debit Card';
+      case 'cash':
+        return 'Cash';
+      default:
+        return '—';
+    }
+  }
+
+  getPaymentClass(orderId: number): string {
+    const method = this.orderPaymentMap[orderId];
+    switch (method) {
+      case 'credit':
+        return 'payment-credit';
+      case 'debit':
+        return 'payment-debit';
+      case 'cash':
+        return 'payment-cash';
+      default:
+        return 'payment-none';
+    }
+  }
+
+  // ── Order Items ───────────────────────────────────────────────
   addItem(): void {
     if (this.selectedProductId === 0) {
       alert('Please select a product.');
@@ -108,8 +171,6 @@ export class OrderComponent implements OnInit {
       alert('Quantity must be at least 1.');
       return;
     }
-
-    // Check if product already added — update quantity instead
     const existing = this.orderItems.find((i) => i.productId === this.selectedProductId);
     if (existing) {
       existing.quantity += this.selectedQuantity;
@@ -119,8 +180,6 @@ export class OrderComponent implements OnInit {
         { productId: this.selectedProductId, quantity: this.selectedQuantity },
       ];
     }
-
-    // Reset selectors
     this.selectedProductId = 0;
     this.selectedQuantity = 1;
   }
@@ -138,9 +197,10 @@ export class OrderComponent implements OnInit {
   }
 
   getOrderTotal(): number {
-    return this.orderItems.reduce((sum, item) => {
-      return sum + this.getProductPrice(item.productId) * item.quantity;
-    }, 0);
+    return this.orderItems.reduce(
+      (sum, item) => sum + this.getProductPrice(item.productId) * item.quantity,
+      0,
+    );
   }
 
   submitCreate(): void {
@@ -160,10 +220,10 @@ export class OrderComponent implements OnInit {
 
     this.orderService.create(dto).subscribe({
       next: () => {
-        this.showCreateForm.set(false);
+        this.closePanel();
         this.loadOrders();
       },
-      error: () => alert('Failed to create order.'),
+      error: (err) => alert(err.error?.message ?? 'Failed to create order.'),
     });
   }
 
@@ -180,7 +240,10 @@ export class OrderComponent implements OnInit {
   deleteOrder(id: number): void {
     if (!confirm('Are you sure you want to delete this order?')) return;
     this.orderService.delete(id).subscribe({
-      next: () => this.loadOrders(),
+      next: () => {
+        delete this.orderPaymentMap[id];
+        this.loadOrders();
+      },
       error: () => alert('Failed to delete order.'),
     });
   }
