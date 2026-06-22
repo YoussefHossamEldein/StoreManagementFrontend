@@ -95,7 +95,7 @@ export class ProductComponent implements OnInit {
         this.closePanel();
         this.loadProducts();
       },
-      error: () => alert('Failed to create product.'),
+      error: (err) => alert(err.error?.message ?? 'Failed to create product.'),
     });
   }
 
@@ -115,11 +115,13 @@ export class ProductComponent implements OnInit {
     });
   }
 
-  deleteProduct(id: number): void {
-    if (!confirm('Are you sure you want to delete this product?')) return;
-    this.productService.delete(id).subscribe({
+  toggleAvailability(product: Product): void {
+    const action = product.isAvailable ? 'deactivate' : 'activate';
+    if (!confirm(`Are you sure you want to ${action} "${product.name}"?`)) return;
+
+    this.productService.toggleAvailability(product.id).subscribe({
       next: () => this.loadProducts(),
-      error: () => alert('Failed to delete product.'),
+      error: () => alert('Failed to update product availability.'),
     });
   }
 }

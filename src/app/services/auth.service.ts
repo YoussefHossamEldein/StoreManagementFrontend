@@ -6,7 +6,7 @@ import { Router } from '@angular/router';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private apiUrl = 'https://localhost:7099/api/auth';
+  private apiUrl = 'https://localhost:7208/api/auth';
 
   currentUser = signal<AuthResponse | null>(this.getUserFromStorage());
   isLoggedIn = signal<boolean>(!!this.getUserFromStorage());

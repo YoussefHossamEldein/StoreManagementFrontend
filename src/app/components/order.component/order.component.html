@@ -1,3 +1,8 @@
+<!-- Overlay -->
+@if (panelOpen()) {
+  <div class="overlay" (click)="closePanel()"></div>
+}
+
 <div class="page-container">
   <div class="page-header">
     <div>
@@ -20,10 +25,104 @@
     />
   </div>
 
-  @if (showCreateForm()) {
-    <div class="form-card">
-      <h2>Create New Order</h2>
+  @if (isLoading()) {
+    <div class="loading">Loading orders...</div>
+  }
 
+  @if (!isLoading()) {
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Customer</th>
+            <th>Date</th>
+            <th>Total</th>
+            <th>Payment</th>
+            <th>Status</th>
+            @if (authService.isAdmin()) {
+              <th>Update Status</th>
+              <th>Actions</th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @if (filteredOrders().length === 0) {
+            <tr>
+              <td colspan="8" class="empty-row">No orders found.</td>
+            </tr>
+          }
+          @for (order of filteredOrders(); track order.id) {
+            <tr>
+              <td>{{ order.id }}</td>
+              <td>{{ getCustomerName(order.customerId) }}</td>
+              <td>{{ order.orderDate | date: 'MMM d, y' }}</td>
+              <td>${{ order.totalAmount | number: '1.2-2' }}</td>
+              <td>
+                <span [class]="getPaymentClass(order.id)">
+                  {{ getPaymentLabel(order.id) }}
+                </span>
+              </td>
+              <td>
+                <span [class]="getStatusClass(order.status)">{{ order.status }}</span>
+              </td>
+              @if (authService.isAdmin()) {
+                <td>
+                  <select class="status-select" (change)="updateStatus(order.id, $event)">
+                    <option value="Pending" [selected]="order.status === 'Pending'">Pending</option>
+                    <option value="Shipped" [selected]="order.status === 'Shipped'">Shipped</option>
+                    <option value="Delivered" [selected]="order.status === 'Delivered'">
+                      Delivered
+                    </option>
+                    <option value="Cancelled" [selected]="order.status === 'Cancelled'">
+                      Cancelled
+                    </option>
+                  </select>
+                </td>
+                <td class="actions">
+                  <button class="btn-delete" (click)="deleteOrder(order.id)">Delete</button>
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+      <div class="table-footer">
+        Showing {{ filteredOrders().length }} of {{ orders().length }} orders
+      </div>
+    </div>
+  }
+</div>
+
+<!-- ── Side Panel ─────────────────────────────────────────────── -->
+<div class="side-panel" [class.open]="panelOpen()">
+  <!-- Header -->
+  <div class="panel-header">
+    <div class="panel-header-left">
+      @if (panelStep() === 2) {
+        <button class="btn-back" (click)="goToStep(1)">←</button>
+      }
+      <h2>{{ panelStep() === 1 ? 'Create New Order' : 'Payment Method' }}</h2>
+    </div>
+    <button class="btn-close" (click)="closePanel()">✕</button>
+  </div>
+
+  <!-- Step indicators -->
+  <div class="step-bar">
+    <div class="step" [class.active]="panelStep() === 1" [class.done]="panelStep() === 2">
+      <div class="step-circle">{{ panelStep() === 2 ? '✓' : '1' }}</div>
+      <span>Order Details</span>
+    </div>
+    <div class="step-line" [class.done]="panelStep() === 2"></div>
+    <div class="step" [class.active]="panelStep() === 2">
+      <div class="step-circle">2</div>
+      <span>Payment</span>
+    </div>
+  </div>
+
+  <!-- ── STEP 1: Order Details ──────────────────────────────── -->
+  @if (panelStep() === 1) {
+    <div class="panel-body">
       <div class="form-group">
         <label>Customer</label>
         <select [(ngModel)]="selectedCustomerId">
@@ -56,8 +155,8 @@
           <div class="items-header">
             <span>Product</span>
             <span>Qty</span>
-            <span>Unit Price</span>
-            <span>Subtotal</span>
+            <span>Price</span>
+            <span>Sub</span>
             <span></span>
           </div>
           @for (item of orderItems; track item.productId) {
@@ -72,73 +171,113 @@
           <div class="items-total">Total: ${{ getOrderTotal() | number: '1.2-2' }}</div>
         </div>
       }
+    </div>
 
-      <div class="form-actions">
-        <button class="btn-secondary" (click)="cancelCreate()">Cancel</button>
-        <button class="btn-primary" (click)="submitCreate()">Place Order</button>
-      </div>
+    <div class="panel-footer">
+      <button class="btn-secondary" (click)="closePanel()">Cancel</button>
+      <button class="btn-primary" (click)="goToPayment()">Next →</button>
     </div>
   }
 
-  @if (isLoading()) {
-    <div class="loading">Loading orders...</div>
-  }
-
-  @if (!isLoading()) {
-    <div class="table-container">
-      <table>
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Customer</th>
-            <th>Date</th>
-            <th>Total</th>
-            <th>Status</th>
-            @if (authService.isAdmin()) {
-              <th>Update Status</th>
-              <th>Actions</th>
-            }
-          </tr>
-        </thead>
-        <tbody>
-          @if (filteredOrders().length === 0) {
-            <tr>
-              <td colspan="7" class="empty-row">No orders found.</td>
-            </tr>
-          }
-          @for (order of filteredOrders(); track order.id) {
-            <tr>
-              <td>{{ order.id }}</td>
-              <td>{{ getCustomerName(order.customerId) }}</td>
-              <td>{{ order.orderDate | date: 'MMM d, y' }}</td>
-              <td>${{ order.totalAmount | number: '1.2-2' }}</td>
-              <td>
-                <span [class]="getStatusClass(order.status)">{{ order.status }}</span>
-              </td>
-              @if (authService.isAdmin()) {
-                <td>
-                  <select class="status-select" (change)="updateStatus(order.id, $event)">
-                    <option value="Pending" [selected]="order.status === 'Pending'">Pending</option>
-                    <option value="Shipped" [selected]="order.status === 'Shipped'">Shipped</option>
-                    <option value="Delivered" [selected]="order.status === 'Delivered'">
-                      Delivered
-                    </option>
-                    <option value="Cancelled" [selected]="order.status === 'Cancelled'">
-                      Cancelled
-                    </option>
-                  </select>
-                </td>
-                <td class="actions">
-                  <button class="btn-delete" (click)="deleteOrder(order.id)">Delete</button>
-                </td>
-              }
-            </tr>
-          }
-        </tbody>
-      </table>
-      <div class="table-footer">
-        Showing {{ filteredOrders().length }} of {{ orders().length }} orders
+  <!-- ── STEP 2: Payment Method ─────────────────────────────── -->
+  @if (panelStep() === 2) {
+    <div class="panel-body">
+      <!-- Order summary pill -->
+      <div class="order-summary-pill">
+        <span class="summary-label">Order Total</span>
+        <span class="summary-amount">${{ getOrderTotal() | number: '1.2-2' }}</span>
       </div>
+
+      <p class="section-label">Select a payment method</p>
+
+      <!-- Payment method cards -->
+      <div class="payment-methods">
+        <button
+          class="payment-card"
+          [class.selected]="selectedPaymentMethod === 'credit'"
+          (click)="selectPaymentMethod('credit')"
+        >
+          <div class="payment-icon credit-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <rect x="2" y="5" width="20" height="14" rx="2" />
+              <path d="M2 10h20" />
+              <path d="M6 15h4" />
+            </svg>
+          </div>
+          <div class="payment-info">
+            <span class="payment-name">Credit Card</span>
+            <span class="payment-desc">Visa, Mastercard, Amex</span>
+          </div>
+          <div class="payment-check">✓</div>
+        </button>
+
+        <button
+          class="payment-card"
+          [class.selected]="selectedPaymentMethod === 'debit'"
+          (click)="selectPaymentMethod('debit')"
+        >
+          <div class="payment-icon debit-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <rect x="2" y="5" width="20" height="14" rx="2" />
+              <path d="M2 10h20" />
+              <circle cx="18" cy="15" r="1.5" fill="currentColor" stroke="none" />
+            </svg>
+          </div>
+          <div class="payment-info">
+            <span class="payment-name">Debit Card</span>
+            <span class="payment-desc">Direct bank debit</span>
+          </div>
+          <div class="payment-check">✓</div>
+        </button>
+
+        <button
+          class="payment-card"
+          [class.selected]="selectedPaymentMethod === 'cash'"
+          (click)="selectPaymentMethod('cash')"
+        >
+          <div class="payment-icon cash-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <rect x="2" y="6" width="20" height="12" rx="2" />
+              <circle cx="12" cy="12" r="3" />
+              <path d="M6 12h.01M18 12h.01" />
+            </svg>
+          </div>
+          <div class="payment-info">
+            <span class="payment-name">Cash</span>
+            <span class="payment-desc">Pay on delivery</span>
+          </div>
+          <div class="payment-check">✓</div>
+        </button>
+      </div>
+
+      <!-- Cash info -->
+      @if (selectedPaymentMethod === 'cash') {
+        <div class="cash-info">
+          <div class="cash-icon-wrap">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#16a34a"
+              stroke-width="1.6"
+              width="32"
+              height="32"
+            >
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+            </svg>
+          </div>
+          <p class="cash-note">
+            You'll pay <strong>${{ getOrderTotal() | number: '1.2-2' }}</strong> in cash when the
+            order is delivered.
+          </p>
+        </div>
+      }
+    </div>
+
+    <div class="panel-footer">
+      <button class="btn-secondary" (click)="goToStep(1)">← Back</button>
+      <button class="btn-primary" (click)="submitCreate()" [disabled]="!selectedPaymentMethod">
+        Place Order
+      </button>
     </div>
   }
 </div>

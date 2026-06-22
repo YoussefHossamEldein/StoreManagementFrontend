@@ -387,3 +387,60 @@ tbody td {
     gap: 12px;
   }
 }
+/* ── Availability Status ──────────────────────────────────────── */
+.status-available {
+  background: #dcfce7;
+  color: #16a34a;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid #bbf7d0;
+}
+
+.status-unavailable {
+  background: #f1f5f9;
+  color: #94a3b8;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid #e2e8f0;
+}
+
+/* ── Toggle Buttons ───────────────────────────────────────────── */
+.btn-deactivate {
+  background: linear-gradient(135deg, #94a3b8, #64748b);
+  color: white;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-left: 6px;
+}
+
+.btn-deactivate:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(100, 116, 139, 0.4);
+}
+
+.btn-activate {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  color: white;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-left: 6px;
+}
+
+.btn-activate:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(22, 163, 74, 0.4);
+}
