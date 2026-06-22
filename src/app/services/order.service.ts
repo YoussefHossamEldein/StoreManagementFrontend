@@ -7,7 +7,7 @@ import { CreateOrderDto, Order } from '../models/order.model';
   providedIn: 'root',
 })
 export class OrderService {
-  private apiUrl = 'https://radiant-connection-production-61be.up.railway.app';
+  private apiUrl = 'https://radiant-connection-production-61be.up.railway.app/api/orders';
   constructor(private http: HttpClient) {}
   getAll(): Observable<Order[]> {
     return this.http.get<Order[]>(this.apiUrl);
