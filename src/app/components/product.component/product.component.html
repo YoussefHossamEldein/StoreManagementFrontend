@@ -111,41 +111,108 @@
   </div>
 
   <div class="panel-body">
+    <!-- General API error -->
+    @if (formErrors()['general']) {
+      <div class="error-banner">{{ formErrors()['general'] }}</div>
+    }
+
     @if (panelMode() === 'create') {
       <div class="form-group">
         <label>Name</label>
-        <input type="text" [(ngModel)]="createForm.name" placeholder="Product name" />
+        <input
+          type="text"
+          [(ngModel)]="createForm.name"
+          placeholder="Product name"
+          [class.input-error]="formErrors()['name']"
+        />
+        @if (formErrors()['name']) {
+          <span class="field-error">{{ formErrors()['name'] }}</span>
+        }
       </div>
+
       <div class="form-group">
         <label>Category</label>
-        <input type="text" [(ngModel)]="createForm.category" placeholder="Category" />
+        <input
+          type="text"
+          [(ngModel)]="createForm.category"
+          placeholder="Category"
+          [class.input-error]="formErrors()['category']"
+        />
+        @if (formErrors()['category']) {
+          <span class="field-error">{{ formErrors()['category'] }}</span>
+        }
       </div>
+
       <div class="form-group">
         <label>Price</label>
-        <input type="number" [(ngModel)]="createForm.price" placeholder="0.00" />
+        <input
+          type="number"
+          [(ngModel)]="createForm.price"
+          placeholder="0.00"
+          [class.input-error]="formErrors()['price']"
+        />
+        @if (formErrors()['price']) {
+          <span class="field-error">{{ formErrors()['price'] }}</span>
+        }
       </div>
+
       <div class="form-group">
         <label>Stock</label>
-        <input type="number" [(ngModel)]="createForm.stock" placeholder="0" />
+        <input
+          type="number"
+          [(ngModel)]="createForm.stock"
+          placeholder="0"
+          [class.input-error]="formErrors()['stock']"
+        />
+        @if (formErrors()['stock']) {
+          <span class="field-error">{{ formErrors()['stock'] }}</span>
+        }
       </div>
     }
 
     @if (panelMode() === 'edit') {
       <div class="form-group">
         <label>Name</label>
-        <input type="text" [(ngModel)]="editForm.name" />
+        <input type="text" [(ngModel)]="editForm.name" [class.input-error]="formErrors()['name']" />
+        @if (formErrors()['name']) {
+          <span class="field-error">{{ formErrors()['name'] }}</span>
+        }
       </div>
+
       <div class="form-group">
         <label>Category</label>
-        <input type="text" [(ngModel)]="editForm.category" />
+        <input
+          type="text"
+          [(ngModel)]="editForm.category"
+          [class.input-error]="formErrors()['category']"
+        />
+        @if (formErrors()['category']) {
+          <span class="field-error">{{ formErrors()['category'] }}</span>
+        }
       </div>
+
       <div class="form-group">
         <label>Price</label>
-        <input type="number" [(ngModel)]="editForm.price" />
+        <input
+          type="number"
+          [(ngModel)]="editForm.price"
+          [class.input-error]="formErrors()['price']"
+        />
+        @if (formErrors()['price']) {
+          <span class="field-error">{{ formErrors()['price'] }}</span>
+        }
       </div>
+
       <div class="form-group">
         <label>Stock</label>
-        <input type="number" [(ngModel)]="editForm.stock" />
+        <input
+          type="number"
+          [(ngModel)]="editForm.stock"
+          [class.input-error]="formErrors()['stock']"
+        />
+        @if (formErrors()['stock']) {
+          <span class="field-error">{{ formErrors()['stock'] }}</span>
+        }
       </div>
     }
   </div>

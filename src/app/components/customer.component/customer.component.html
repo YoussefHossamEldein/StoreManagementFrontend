@@ -81,9 +81,22 @@
   </div>
 
   <div class="panel-body">
+    <!-- General API error -->
+    @if (formErrors()['general']) {
+      <div class="error-banner">{{ formErrors()['general'] }}</div>
+    }
+
     <div class="form-group">
       <label>Full Name</label>
-      <input type="text" [(ngModel)]="createForm.name" placeholder="Enter customer name" />
+      <input
+        type="text"
+        [(ngModel)]="createForm.name"
+        placeholder="Enter customer name"
+        [class.input-error]="formErrors()['name']"
+      />
+      @if (formErrors()['name']) {
+        <span class="field-error">{{ formErrors()['name'] }}</span>
+      }
     </div>
   </div>
 

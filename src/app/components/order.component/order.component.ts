@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { OrderService } from '../../services/order.service';
 import { CustomerService } from '../../services/customer.service';
 import { ProductService } from '../../services/product.service';
+import { ToastService } from '../../services/toast.service';
 import { Order, CreateOrderDto, CreateOrderItemDto } from '../../models/order.model';
 import { Customer } from '../../models/customer.model';
 import { Product } from '../../models/product.model';
@@ -27,7 +28,10 @@ export class OrderComponent implements OnInit {
   showCreateForm = signal<boolean>(false);
   panelOpen = signal<boolean>(false);
   panelStep = signal<1 | 2>(1);
+  formErrors = signal<Record<string, string>>({});
+
   authService = inject(AuthService);
+  private toast = inject(ToastService);
 
   // ── Computed ──────────────────────────────────────────────────
   filteredOrders = computed(() => {
@@ -90,8 +94,7 @@ export class OrderComponent implements OnInit {
 
   // ── Search ────────────────────────────────────────────────────
   onSearch(event: Event): void {
-    const value = (event.target as HTMLInputElement).value;
-    this.searchTerm.set(value);
+    this.searchTerm.set((event.target as HTMLInputElement).value);
   }
 
   // ── Panel Controls ────────────────────────────────────────────
@@ -101,6 +104,7 @@ export class OrderComponent implements OnInit {
     this.selectedProductId = 0;
     this.selectedQuantity = 1;
     this.selectedPaymentMethod = '';
+    this.formErrors.set({});
     this.panelStep.set(1);
     this.panelOpen.set(true);
     this.showCreateForm.set(true);
@@ -110,6 +114,7 @@ export class OrderComponent implements OnInit {
     this.panelOpen.set(false);
     this.showCreateForm.set(false);
     this.panelStep.set(1);
+    this.formErrors.set({});
   }
 
   goToStep(step: 1 | 2): void {
@@ -117,12 +122,12 @@ export class OrderComponent implements OnInit {
   }
 
   goToPayment(): void {
-    if (this.selectedCustomerId === 0) {
-      alert('Please select a customer.');
-      return;
-    }
-    if (this.orderItems.length === 0) {
-      alert('Please add at least one product.');
+    this.formErrors.set({});
+    const errors: Record<string, string> = {};
+    if (this.selectedCustomerId === 0) errors['customer'] = 'Please select a customer.';
+    if (this.orderItems.length === 0) errors['items'] = 'Please add at least one product.';
+    if (Object.keys(errors).length > 0) {
+      this.formErrors.set(errors);
       return;
     }
     this.panelStep.set(2);
@@ -163,14 +168,15 @@ export class OrderComponent implements OnInit {
 
   // ── Order Items ───────────────────────────────────────────────
   addItem(): void {
-    if (this.selectedProductId === 0) {
-      alert('Please select a product.');
+    this.formErrors.set({});
+    const errors: Record<string, string> = {};
+    if (this.selectedProductId === 0) errors['product'] = 'Please select a product.';
+    if (this.selectedQuantity < 1) errors['quantity'] = 'Quantity must be at least 1.';
+    if (Object.keys(errors).length > 0) {
+      this.formErrors.set(errors);
       return;
     }
-    if (this.selectedQuantity < 1) {
-      alert('Quantity must be at least 1.');
-      return;
-    }
+
     const existing = this.orderItems.find((i) => i.productId === this.selectedProductId);
     if (existing) {
       existing.quantity += this.selectedQuantity;
@@ -204,15 +210,7 @@ export class OrderComponent implements OnInit {
   }
 
   submitCreate(): void {
-    if (this.selectedCustomerId === 0) {
-      alert('Please select a customer.');
-      return;
-    }
-    if (this.orderItems.length === 0) {
-      alert('Please add at least one product.');
-      return;
-    }
-
+    this.formErrors.set({});
     const dto: CreateOrderDto = {
       customerId: this.selectedCustomerId,
       items: this.orderItems,
@@ -222,8 +220,21 @@ export class OrderComponent implements OnInit {
       next: () => {
         this.closePanel();
         this.loadOrders();
+        this.toast.success('Order placed successfully!');
       },
-      error: (err) => alert(err.error?.message ?? 'Failed to create order.'),
+      error: (err) => {
+        if (err.status === 400 && err.error?.errors) {
+          const mapped: Record<string, string> = {};
+          for (const key of Object.keys(err.error.errors)) {
+            const shortKey = key.split('.').pop()!.toLowerCase();
+            mapped[shortKey] = err.error.errors[key][0];
+          }
+          this.formErrors.set(mapped);
+          this.panelStep.set(1);
+        } else {
+          this.toast.error(err.error?.message ?? 'Failed to create order.');
+        }
+      },
     });
   }
 
@@ -231,8 +242,11 @@ export class OrderComponent implements OnInit {
   updateStatus(id: number, event: Event): void {
     const status = (event.target as HTMLSelectElement).value;
     this.orderService.update(id, status).subscribe({
-      next: () => this.loadOrders(),
-      error: () => alert('Failed to update status.'),
+      next: () => {
+        this.loadOrders();
+        this.toast.success(`Order status updated to ${status}.`);
+      },
+      error: () => this.toast.error('Failed to update status.'),
     });
   }
 
@@ -243,8 +257,9 @@ export class OrderComponent implements OnInit {
       next: () => {
         delete this.orderPaymentMap[id];
         this.loadOrders();
+        this.toast.success('Order deleted.');
       },
-      error: () => alert('Failed to delete order.'),
+      error: () => this.toast.error('Failed to delete order.'),
     });
   }
 

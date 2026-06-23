@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ProductService } from '../../services/product.service';
 import { AuthService } from '../../services/auth.service';
 import { Product, CreateProductDto, UpdateProductDto } from '../../models/product.model';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-product',
@@ -20,7 +21,7 @@ export class ProductComponent implements OnInit {
   isLoading = signal<boolean>(false);
   errorMessage = signal<string>('');
   searchTerm = signal<string>('');
-
+  formErrors = signal<Record<string, string>>({});
   // Panel state
   panelOpen = signal<boolean>(false);
   panelMode = signal<'create' | 'edit'>('create');
@@ -33,6 +34,7 @@ export class ProductComponent implements OnInit {
       (p) => p.name.toLowerCase().includes(term) || p.category.toLowerCase().includes(term),
     );
   });
+  private toast = inject(ToastService);
 
   createForm: CreateProductDto = { name: '', category: '', price: 0, stock: 0 };
   editForm: UpdateProductDto = { name: '', category: '', price: 0, stock: 0 };
@@ -82,46 +84,87 @@ export class ProductComponent implements OnInit {
   closePanel(): void {
     this.panelOpen.set(false);
     this.editingProduct.set(null);
+    this.formErrors.set({}); // add this
   }
 
   // ── Submit ────────────────────────────────────────────────────
   submitCreate(): void {
-    if (!this.createForm.name || !this.createForm.category || this.createForm.price <= 0) {
-      alert('Please fill all fields correctly.');
+    this.formErrors.set({});
+    const errors: Record<string, string> = {};
+
+    if (!this.createForm.name) errors['name'] = 'Product name is required.';
+    if (!this.createForm.category) errors['category'] = 'Category is required.';
+    if (this.createForm.price <= 0) errors['price'] = 'Price must be greater than 0.';
+    if (this.createForm.stock < 0) errors['stock'] = 'Stock cannot be negative.';
+
+    if (Object.keys(errors).length > 0) {
+      this.formErrors.set(errors);
       return;
     }
+
     this.productService.create(this.createForm).subscribe({
       next: () => {
         this.closePanel();
         this.loadProducts();
+        this.toast.success('Product created successfully');
       },
-      error: (err) => alert(err.error?.message ?? 'Failed to create product.'),
+      error: (err) => {
+        if (err.status === 400 && err.error?.errors) {
+          const mapped: Record<string, string> = {};
+          for (const key of Object.keys(err.error.errors)) {
+            const shortKey = key.split('.').pop()!.toLowerCase();
+            mapped[shortKey] = err.error.errors[key][0];
+          }
+          this.formErrors.set(mapped);
+        } else {
+          this.toast.error('Failed to create product.');
+        }
+      },
     });
   }
-
   submitEdit(): void {
+    this.formErrors.set({});
     const product = this.editingProduct();
     if (!product) return;
-    if (!this.editForm.name || !this.editForm.category || this.editForm.price <= 0) {
-      alert('Please fill all fields correctly.');
+
+    const errors: Record<string, string> = {};
+    if (!this.editForm.name) errors['name'] = 'Product name is required.';
+    if (!this.editForm.category) errors['category'] = 'Category is required.';
+    if (this.editForm.price <= 0) errors['price'] = 'Price must be greater than 0.';
+    if (this.editForm.stock < 0) errors['stock'] = 'Stock cannot be negative.';
+
+    if (Object.keys(errors).length > 0) {
+      this.formErrors.set(errors);
       return;
     }
+
     this.productService.update(product.id, this.editForm).subscribe({
       next: () => {
         this.closePanel();
         this.loadProducts();
+        this.toast.success('Product updated successfully!');
       },
-      error: () => alert('Failed to update product.'),
+      error: (err) => {
+        if (err.status === 400 && err.error?.errors) {
+          const mapped: Record<string, string> = {};
+          for (const key of Object.keys(err.error.errors)) {
+            const shortKey = key.split('.').pop()!.toLowerCase();
+            mapped[shortKey] = err.error.errors[key][0];
+          }
+          this.formErrors.set(mapped);
+        } else {
+          this.toast.error('Failed to update product.');
+        }
+      },
     });
   }
-
   toggleAvailability(product: Product): void {
     const action = product.isAvailable ? 'deactivate' : 'activate';
     if (!confirm(`Are you sure you want to ${action} "${product.name}"?`)) return;
 
     this.productService.toggleAvailability(product.id).subscribe({
       next: () => this.loadProducts(),
-      error: () => alert('Failed to update product availability.'),
+      error: () => this.toast.error('Failed to update product availability.'),
     });
   }
 }

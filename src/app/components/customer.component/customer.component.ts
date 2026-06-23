@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { CustomerService } from '../../services/customer.service';
 import { AuthService } from '../../services/auth.service';
 import { Customer, CreateCustomerDto } from '../../models/customer.model';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-customer',
@@ -14,12 +15,14 @@ import { Customer, CreateCustomerDto } from '../../models/customer.model';
 })
 export class CustomerComponent implements OnInit {
   private customerService = inject(CustomerService);
+  private toast = inject(ToastService);
   authService = inject(AuthService);
 
   customers = signal<Customer[]>([]);
   isLoading = signal<boolean>(false);
   errorMessage = signal<string>('');
   searchTerm = signal<string>('');
+  formErrors = signal<Record<string, string>>({});
 
   // Panel state
   panelOpen = signal<boolean>(false);
@@ -57,32 +60,58 @@ export class CustomerComponent implements OnInit {
 
   openPanel(): void {
     this.createForm = { name: '' };
+    this.formErrors.set({});
     this.panelOpen.set(true);
   }
 
   closePanel(): void {
     this.panelOpen.set(false);
+    this.formErrors.set({});
   }
 
   submitCreate(): void {
-    if (!this.createForm.name) {
-      alert('Please enter a customer name.');
+    this.formErrors.set({});
+    const errors: Record<string, string> = {};
+
+    if (!this.createForm.name || !this.createForm.name.trim()) {
+      errors['name'] = 'Customer name is required.';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      this.formErrors.set(errors);
       return;
     }
+
     this.customerService.create(this.createForm).subscribe({
       next: () => {
         this.closePanel();
         this.loadCustomers();
+        this.toast.success('Customer created successfully');
       },
-      error: () => alert('Failed to create customer.'),
+      error: (err) => {
+        if (err.status === 400 && err.error?.errors) {
+          const mapped: Record<string, string> = {};
+          for (const key of Object.keys(err.error.errors)) {
+            const shortKey = key.split('.').pop()!.toLowerCase();
+            mapped[shortKey] = err.error.errors[key][0];
+          }
+          this.formErrors.set(mapped);
+        } else {
+          this.toast.error('failed to create customer');
+        }
+      },
     });
   }
 
   deleteCustomer(id: number): void {
     if (!confirm('Are you sure you want to delete this customer?')) return;
     this.customerService.delete(id).subscribe({
-      next: () => this.loadCustomers(),
-      error: () => alert('Failed to delete customer.'),
+      next: () => {
+        this.loadCustomers();
+        this.toast.success('Customer deleted');
+      },
+
+      error: () => this.toast.error('Failed to delete customer'),
     });
   }
 }

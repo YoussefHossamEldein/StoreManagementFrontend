@@ -8,6 +8,7 @@ import { CreateOrderDto, Order } from '../models/order.model';
 })
 export class OrderService {
   private apiUrl = 'https://localhost:7208/api/orders';
+
   constructor(private http: HttpClient) {}
   getAll(): Observable<Order[]> {
     return this.http.get<Order[]>(this.apiUrl);

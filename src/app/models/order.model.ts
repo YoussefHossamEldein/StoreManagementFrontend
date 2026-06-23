@@ -10,6 +10,7 @@ export interface Order {
   totalAmount: number;
   orderDate: string;
   items: OrderItem[];
+  createdByEmail?: string;
 }
 export interface CreateOrderItemDto {
   quantity: number;
